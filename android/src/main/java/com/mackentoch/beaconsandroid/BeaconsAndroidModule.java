@@ -139,7 +139,7 @@ public class BeaconsAndroidModule extends ReactContextBaseJavaModule implements 
     PendingIntent resultPendingIntent =
       stackBuilder.getPendingIntent(
         0,
-        PendingIntent.FLAG_UPDATE_CURRENT
+        Build.VERSION.SDK_INT > Build.VERSION_CODES.R ? PendingIntent.FLAG_IMMUTABLE : PendingIntent.FLAG_UPDATE_CURRENT
       );
     builder.setSmallIcon(notifData.getDrawableIcon());
     builder.setContentTitle(notifData.getContentTitle());
