@@ -11,6 +11,8 @@ import android.content.ServiceConnection;
 import android.os.Build;
 import android.os.RemoteException;
 import org.jetbrains.annotations.Nullable;
+
+import android.service.notification.StatusBarNotification;
 import android.util.Log;
 
 import androidx.annotation.RequiresApi;
@@ -161,19 +163,44 @@ public class BeaconsAndroidModule extends ReactContextBaseJavaModule implements 
 
   @ReactMethod
   public void startForegroundService(ReadableMap readableMap, Callback resolve, Callback reject){
-    try {
-      notifData = new NotificationData(this.mApplicationContext, readableMap);
+    NotificationManager mNotificationManager = (NotificationManager) mApplicationContext.getSystemService(Context.NOTIFICATION_SERVICE);
+    notifData = new NotificationData(this.mApplicationContext, readableMap);
+    if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M){
+      boolean didResolved = false;
+      StatusBarNotification[] notifications = mNotificationManager.getActiveNotifications();
+      for (StatusBarNotification notification : notifications) {
+        if (notification.getId() == notifData.getNotificationId()) {
+          didResolved = true;
+        }
+      }
+      if(didResolved){
+        resolve.invoke(notifData.getNotificationId());
+      }else{
+        try {
+          mBeaconManager.enableForegroundServiceScanning(generateNotification(""), notifData.getNotificationId());
+          mBeaconManager.setEnableScheduledScanJobs(false);
+          mBeaconManager.setBackgroundBetweenScanPeriod(0);
+          mBeaconManager.setBackgroundScanPeriod(1100);
 
+          resolve.invoke(notifData.getNotificationId());
+        }catch(Exception e){
+          Log.d(TAG, "Notif Exception " + e);
+          reject.invoke(e.getMessage());
+        }
+      }
 
-      mBeaconManager.enableForegroundServiceScanning(generateNotification(""), notifData.getNotificationId());
-      mBeaconManager.setEnableScheduledScanJobs(false);
-      mBeaconManager.setBackgroundBetweenScanPeriod(0);
-      mBeaconManager.setBackgroundScanPeriod(1100);
+    }else{
+      try {
+        mBeaconManager.enableForegroundServiceScanning(generateNotification(""), notifData.getNotificationId());
+        mBeaconManager.setEnableScheduledScanJobs(false);
+        mBeaconManager.setBackgroundBetweenScanPeriod(0);
+        mBeaconManager.setBackgroundScanPeriod(1100);
 
-      resolve.invoke(notifData.getNotificationId());
-    }catch(Exception e){
-      Log.d(TAG, "Notif Exception " + e);
-      reject.invoke(e.getMessage());
+        resolve.invoke(notifData.getNotificationId());
+      }catch(Exception e){
+        Log.d(TAG, "Notif Exception " + e);
+        reject.invoke(e.getMessage());
+      }
     }
   }
 

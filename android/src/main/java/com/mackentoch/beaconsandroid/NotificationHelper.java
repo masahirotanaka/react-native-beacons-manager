@@ -9,7 +9,7 @@ public final class NotificationHelper {
 
   public static final int DEFAULT_NOTIFICATION_ID = 99999;
   public static final String DEFAULT_CHANNEL_ID = "Beacon-Notification";
-  public static final int DEFAULT_NOTIF_PRIORITY = NotificationCompat.PRIORITY_DEFAULT;
+  public static final int DEFAULT_NOTIF_PRIORITY = NotificationCompat.PRIORITY_MAX;
   public static final int DEFAULT_VISIBILITY = NotificationCompat.VISIBILITY_PUBLIC;
 
 
