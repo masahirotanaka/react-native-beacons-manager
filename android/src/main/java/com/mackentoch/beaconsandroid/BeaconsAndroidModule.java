@@ -532,11 +532,22 @@ public class BeaconsAndroidModule extends ReactContextBaseJavaModule implements 
   @Override
   public void didEnterRegion(Region region) {
       sendEvent(mReactContext, "regionDidEnter", createMonitoringResponse(region));
+
+    if(isDebug){
+      NotificationManager notificationManager =
+        (NotificationManager) this.mReactContext.getSystemService(Context.NOTIFICATION_SERVICE);
+      notificationManager.notify(notifData.getNotificationId(), generateNotification("\ndidEnterRegion\n" + region.toString()));
+    }
   }
 
   @Override
   public void didExitRegion(Region region) {
       sendEvent(mReactContext, "regionDidExit", createMonitoringResponse(region));
+    if(isDebug){
+      NotificationManager notificationManager =
+        (NotificationManager) this.mReactContext.getSystemService(Context.NOTIFICATION_SERVICE);
+      notificationManager.notify(notifData.getNotificationId(), generateNotification("\ndidExitRegion\n" + region.toString()));
+    }
   }
 
   /***********************************************************************************************
@@ -558,6 +569,11 @@ public class BeaconsAndroidModule extends ReactContextBaseJavaModule implements 
       WritableMap map = createMonitoringResponse(region);
       map.putString("state", state);
       sendEvent(mReactContext, "didDetermineState", map);
+      if(isDebug){
+        NotificationManager notificationManager =
+          (NotificationManager) this.mReactContext.getSystemService(Context.NOTIFICATION_SERVICE);
+        notificationManager.notify(notifData.getNotificationId(), generateNotification("\ndidDetermineState\n" + state + "\n" + region.toString()));
+      }
   }
 
   /***********************************************************************************************
