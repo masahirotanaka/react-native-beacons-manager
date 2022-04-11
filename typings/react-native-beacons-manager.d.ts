@@ -82,7 +82,7 @@ declare module 'react-native-beacons-manager' {
     detectEddystoneTLM(): void;
 
     detectCustomBeaconLayout(
-      parser: number
+      parser: string
     ): void;
 
     setDebug(
