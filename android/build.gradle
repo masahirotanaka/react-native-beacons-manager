@@ -1,7 +1,7 @@
 buildscript {
     repositories {
         google()
-        jcenter()
+        mavenCentral()
     }
 
     dependencies {
@@ -12,9 +12,9 @@ buildscript {
 apply plugin: 'com.android.library'
 
 
-def DEFAULT_COMPILE_SDK_VERSION             = 31
-def DEFAULT_BUILD_TOOLS_VERSION             = "31.0.0"
-def DEFAULT_TARGET_SDK_VERSION              = 31
+def DEFAULT_COMPILE_SDK_VERSION             = 33
+def DEFAULT_BUILD_TOOLS_VERSION             = "33.0.0"
+def DEFAULT_TARGET_SDK_VERSION              = 33
 
 android {
     compileSdkVersion project.hasProperty('compileSdkVersion') ? project.compileSdkVersion : DEFAULT_COMPILE_SDK_VERSION
@@ -30,7 +30,6 @@ android {
 
 repositories {
     mavenCentral()
-    jcenter()
     google()
 
     def found = false
@@ -105,5 +104,5 @@ dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     implementation 'com.facebook.react:react-native:0.6+'
     implementation 'com.intellij:annotations:+@jar'
-    implementation 'org.altbeacon:android-beacon-library:2.19.3'
+    implementation 'org.altbeacon:android-beacon-library:2.20.3'
 }
