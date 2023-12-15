@@ -184,8 +184,8 @@ public class BeaconsAndroidModule extends ReactContextBaseJavaModule implements 
         try {
           mBeaconManager.enableForegroundServiceScanning(generateNotification(""), notifData.getNotificationId());
           mBeaconManager.setEnableScheduledScanJobs(false);
-          mBeaconManager.setBackgroundBetweenScanPeriod(0);
-          mBeaconManager.setBackgroundScanPeriod(5100);
+          mBeaconManager.setBackgroundBetweenScanPeriod(60 * 1000); // Each 60s run background scan
+          mBeaconManager.setBackgroundScanPeriod(1100l);            // Background scan for 1.1 seconds
 
           resolve.invoke(notifData.getNotificationId());
         }catch(Exception e){
@@ -198,8 +198,8 @@ public class BeaconsAndroidModule extends ReactContextBaseJavaModule implements 
       try {
         mBeaconManager.enableForegroundServiceScanning(generateNotification(""), notifData.getNotificationId());
         mBeaconManager.setEnableScheduledScanJobs(false);
-        mBeaconManager.setBackgroundBetweenScanPeriod(0);
-        mBeaconManager.setBackgroundScanPeriod(5100);
+        mBeaconManager.setBackgroundBetweenScanPeriod(60 * 1000); // Each 60s run background scan
+        mBeaconManager.setBackgroundScanPeriod(1100l);            // Background scan for 1.1 seconds
 
         resolve.invoke(notifData.getNotificationId());
       }catch(Exception e){
