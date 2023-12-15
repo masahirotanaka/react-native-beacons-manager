@@ -586,8 +586,7 @@ public class BeaconsAndroidModule extends ReactContextBaseJavaModule implements 
    **********************************************************************************************/
   @Override
   public void didRangeBeaconsInRegion(Collection<Beacon> beacons, Region region) {
-    Log.d(LOG_TAG, "rangingConsumer didRangeBeaconsInRegion, beacons: " + beacons.toString());
-    Log.d(LOG_TAG, "rangingConsumer didRangeBeaconsInRegion, region: " + region.toString());
+    Log.d(LOG_TAG, "didRangeBeaconsInRegion, region: " + region.toString() + " beacons: " + beacons.toString());
     sendEvent(mReactContext, "beaconsDidRange", createRangingResponse(beacons, region));
     StringBuilder stringBuilder = new StringBuilder();
     int count = 0;
