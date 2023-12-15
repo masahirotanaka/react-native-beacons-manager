@@ -43,6 +43,7 @@ import org.altbeacon.beacon.RangeNotifier;
 import org.altbeacon.beacon.Region;
 import org.altbeacon.beacon.service.ArmaRssiFilter;
 import org.altbeacon.beacon.service.RunningAverageRssiFilter;
+import org.altbeacon.bluetooth.BluetoothMedic;
 
 import java.util.Collection;
 import java.util.HashMap;
@@ -70,6 +71,10 @@ public class BeaconsAndroidModule extends ReactContextBaseJavaModule implements 
     @Override
     public void initialize() {
         this.mApplicationContext = this.mReactContext.getApplicationContext();
+        
+        // @TODO
+        // BluetoothMedic.getInstance().legacyEnablePowerCycleOnFailures(this) // Android 4-12 only
+        // BluetoothMedic.getInstance().enablePeriodicTests(this, BluetoothMedic.SCAN_TEST + BluetoothMedic.TRANSMIT_TEST)
 
         this.mBeaconManager = BeaconManager.getInstanceForApplication(mApplicationContext);
         // need to bind at instantiation so that service loads (to test more)
@@ -123,7 +128,7 @@ public class BeaconsAndroidModule extends ReactContextBaseJavaModule implements 
     NotificationCompat.Builder builder;
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
       NotificationChannel channel = new NotificationChannel(notifData.getChannelId(),
-        "Beacon Service", NotificationManager.IMPORTANCE_HIGH);
+        "出席管理通知", NotificationManager.IMPORTANCE_HIGH);
       channel.enableLights(false);
       channel.enableVibration(false);
       channel.setLockscreenVisibility(notifData.getVisibility());
@@ -178,9 +183,9 @@ public class BeaconsAndroidModule extends ReactContextBaseJavaModule implements 
       }else{
         try {
           mBeaconManager.enableForegroundServiceScanning(generateNotification(""), notifData.getNotificationId());
-          mBeaconManager.setEnableScheduledScanJobs(false);
+          mBeaconManager.setEnableScheduledScanJobs(true);
           mBeaconManager.setBackgroundBetweenScanPeriod(0);
-          mBeaconManager.setBackgroundScanPeriod(1100);
+          mBeaconManager.setBackgroundScanPeriod(5100);
 
           resolve.invoke(notifData.getNotificationId());
         }catch(Exception e){
@@ -194,7 +199,7 @@ public class BeaconsAndroidModule extends ReactContextBaseJavaModule implements 
         mBeaconManager.enableForegroundServiceScanning(generateNotification(""), notifData.getNotificationId());
         mBeaconManager.setEnableScheduledScanJobs(false);
         mBeaconManager.setBackgroundBetweenScanPeriod(0);
-        mBeaconManager.setBackgroundScanPeriod(1100);
+        mBeaconManager.setBackgroundScanPeriod(5100);
 
         resolve.invoke(notifData.getNotificationId());
       }catch(Exception e){
