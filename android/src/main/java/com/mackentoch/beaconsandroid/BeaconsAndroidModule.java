@@ -49,6 +49,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Date;
 
 public class BeaconsAndroidModule extends ReactContextBaseJavaModule implements  MonitorNotifier, RangeNotifier {
   private static final String LOG_TAG = "BeaconsAndroidModule";
@@ -95,8 +96,7 @@ public class BeaconsAndroidModule extends ReactContextBaseJavaModule implements 
         this.mBeaconManager.addMonitorNotifier(this);
         this.mBeaconManager.addRangeNotifier(this);
 
-
-
+        this.mBeaconManager.setIntentScanningStrategyEnabled(true);
     }
 
     @Override
@@ -444,6 +444,7 @@ public class BeaconsAndroidModule extends ReactContextBaseJavaModule implements 
       WritableMap map = new WritableNativeMap();
       map.putString("identifier", region.getUniqueId());
       map.putString("uuid", region.getId1() != null ? region.getId1().toString() : "");
+      map.putString("receivedAt", String.valueOf((new Date()).getTime()));
       WritableArray a = new WritableNativeArray();
       for (Beacon beacon : beacons) {
           WritableMap b = new WritableNativeMap();
