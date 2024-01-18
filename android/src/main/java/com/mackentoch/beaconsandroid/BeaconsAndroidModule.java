@@ -99,7 +99,7 @@ public class BeaconsAndroidModule extends ReactContextBaseJavaModule implements 
         BeaconParser parser = new BeaconParser().setBeaconLayout("m:2-3=0215,i:4-19,i:20-21,i:22-23,p:24-24");
         this.mBeaconManager.getBeaconParsers().add(parser);
 
-        this.mBeaconManager.setIntentScanningStrategyEnabled(true);
+        // this.mBeaconManager.setIntentScanningStrategyEnabled(true);
     }
 
     @Override
