@@ -337,8 +337,6 @@ RCT_EXPORT_METHOD(shouldDropEmptyRanges:(BOOL)drop)
   }
   NSMutableArray *beaconArray = [[NSMutableArray alloc] init];
 
-  NSTimeInterval timeIntervalSince1970 = [[NSDate date] timeIntervalSince1970];
-
   for (CLBeacon *beacon in beacons) {
     [beaconArray addObject:@{
                              @"uuid": [beacon.proximityUUID UUIDString],
@@ -353,7 +351,7 @@ RCT_EXPORT_METHOD(shouldDropEmptyRanges:(BOOL)drop)
   }
 
   NSDictionary *event = @{
-                          @"receivedAtNative": [NSString stringWithFormat:@"%lld", currentTimeMilliseconds],
+                          @"receivedAtNative": [[NSDate date] timeIntervalSince1970],
                           @"region": @{
                               @"identifier": region.identifier,
                               @"uuid": [region.proximityUUID UUIDString],
@@ -405,7 +403,6 @@ RCT_EXPORT_METHOD(shouldDropEmptyRanges:(BOOL)drop)
 
 - (void)notifyAboutBeaconChanges:(NSArray *)beacons {
     NSMutableArray *beaconArray = [[NSMutableArray alloc] init];
-    NSTimeInterval timeIntervalSince1970 = [[NSDate date] timeIntervalSince1970];
 
     for (id key in beacons) {
         ESSBeaconInfo *beacon = key;
@@ -413,7 +410,7 @@ RCT_EXPORT_METHOD(shouldDropEmptyRanges:(BOOL)drop)
         [beaconArray addObject:info];
     }
     NSDictionary *event = @{
-                            @"receivedAtNative": [NSString stringWithFormat:@"%lld", currentTimeMilliseconds],
+                            @"receivedAtNative": [[NSDate date] timeIntervalSince1970],
                             @"region": @{
                                     @"identifier": kEddystoneRegionID,
                                     @"uuid": @"", // do not use for eddy stone
