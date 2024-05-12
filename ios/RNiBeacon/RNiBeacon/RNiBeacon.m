@@ -351,7 +351,7 @@ RCT_EXPORT_METHOD(shouldDropEmptyRanges:(BOOL)drop)
   }
 
   NSDictionary *event = @{
-                          @"receivedAtNative": [[NSDate date] timeIntervalSince1970],
+                          @"receivedAtNative": @([[NSDate date] timeIntervalSince1970]),
                           @"region": @{
                               @"identifier": region.identifier,
                               @"uuid": [region.proximityUUID UUIDString],
@@ -410,7 +410,7 @@ RCT_EXPORT_METHOD(shouldDropEmptyRanges:(BOOL)drop)
         [beaconArray addObject:info];
     }
     NSDictionary *event = @{
-                            @"receivedAtNative": [[NSDate date] timeIntervalSince1970],
+                            @"receivedAtNative": @([[NSDate date] timeIntervalSince1970]),
                             @"region": @{
                                     @"identifier": kEddystoneRegionID,
                                     @"uuid": @"", // do not use for eddy stone
