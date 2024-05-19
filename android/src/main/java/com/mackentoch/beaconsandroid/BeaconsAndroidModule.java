@@ -137,6 +137,7 @@ public class BeaconsAndroidModule extends ReactContextBaseJavaModule implements 
   @ReactMethod
   public void transmitBeacon(String uuid, int major, int minor, int measuredPower, Callback resolve, Callback reject) {
     try {
+      if (this.beaconTransmitter.isStarted()) return;
       Beacon beacon = new Beacon.Builder()
         .setId1(uuid)
         .setId2(String.valueOf(major))
@@ -164,6 +165,7 @@ public class BeaconsAndroidModule extends ReactContextBaseJavaModule implements 
   @ReactMethod
   public void stopTransmittingBeacon(Callback resolve, Callback reject) {
     try {
+      if (!this.beaconTransmitter.isStarted()) return;
       this.beaconTransmitter.stopAdvertising();
       resolve.invoke();
     } catch (Exception e) {
