@@ -10,10 +10,14 @@ import android.content.Intent;
 import android.content.ServiceConnection;
 import android.os.Build;
 import android.os.RemoteException;
+
+import org.altbeacon.beacon.logging.Loggers;
 import org.jetbrains.annotations.Nullable;
 
 import android.service.notification.StatusBarNotification;
 import android.util.Log;
+import android.bluetooth.le.AdvertiseCallback;
+import android.bluetooth.le.AdvertiseSettings;
 
 import androidx.annotation.RequiresApi;
 import androidx.core.app.NotificationCompat;
@@ -44,6 +48,7 @@ import org.altbeacon.beacon.Region;
 import org.altbeacon.beacon.service.ArmaRssiFilter;
 import org.altbeacon.beacon.service.RunningAverageRssiFilter;
 import org.altbeacon.bluetooth.BluetoothMedic;
+import org.altbeacon.beacon.logging.LogManager;
 
 import java.util.Collection;
 import java.util.HashMap;
@@ -59,8 +64,10 @@ public class BeaconsAndroidModule extends ReactContextBaseJavaModule implements 
   private BeaconManager mBeaconManager;
   private Context mApplicationContext;
   private ReactApplicationContext mReactContext;
-  private boolean isDebug = false;
   private NotificationData notifData = null;
+  private BeaconTransmitter beaconTransmitter;
+
+  private RNLogger logger;
 
   public BeaconsAndroidModule(ReactApplicationContext reactContext) {
     super(reactContext);
@@ -71,13 +78,15 @@ public class BeaconsAndroidModule extends ReactContextBaseJavaModule implements 
     @RequiresApi(api = Build.VERSION_CODES.KITKAT)
     @Override
     public void initialize() {
+        this.logger = new RNLogger();
         this.mApplicationContext = this.mReactContext.getApplicationContext();
-        
+
         // @TODO
         // BluetoothMedic.getInstance().legacyEnablePowerCycleOnFailures(this) // Android 4-12 only
         // BluetoothMedic.getInstance().enablePeriodicTests(this, BluetoothMedic.SCAN_TEST + BluetoothMedic.TRANSMIT_TEST)
 
         this.mBeaconManager = BeaconManager.getInstanceForApplication(mApplicationContext);
+
         // need to bind at instantiation so that service loads (to test more)
         // mBeaconManager.getBeaconParsers().add(new BeaconParser().setBeaconLayout("m:0-3=4c000215,i:4-19,i:20-21,i:22-23,p:24-24"));
         mBeaconManager.getBeaconParsers().clear();
@@ -99,7 +108,12 @@ public class BeaconsAndroidModule extends ReactContextBaseJavaModule implements 
         BeaconParser parser = new BeaconParser().setBeaconLayout("m:2-3=0215,i:4-19,i:20-21,i:22-23,p:24-24");
         this.mBeaconManager.getBeaconParsers().add(parser);
 
+        this.mBeaconManager.setEnableScheduledScanJobs(false);
+        this.mBeaconManager.setBackgroundBetweenScanPeriod(15 * 1000);
+        this.mBeaconManager.setBackgroundScanPeriod(1100);
         // this.mBeaconManager.setIntentScanningStrategyEnabled(true);
+
+        this.beaconTransmitter = new BeaconTransmitter(mApplicationContext, new BeaconParser().setBeaconLayout("m:2-3=0215,i:4-19,i:20-21,i:22-23,p:24-24"));
     }
 
     @Override
@@ -118,6 +132,43 @@ public class BeaconsAndroidModule extends ReactContextBaseJavaModule implements 
     constants.put("RUNNING_AVG_RSSI_FILTER",RUNNING_AVG_RSSI_FILTER);
     constants.put("ARMA_RSSI_FILTER",ARMA_RSSI_FILTER);
     return constants;
+  }
+
+  @ReactMethod
+  public void transmitBeacon(String uuid, int major, int minor, int measuredPower, Callback resolve, Callback reject) {
+    try {
+      Beacon beacon = new Beacon.Builder()
+        .setId1(uuid)
+        .setId2(String.valueOf(major))
+        .setId3(String.valueOf(minor))
+        .setManufacturer(0x004C)
+        .setTxPower(measuredPower)
+        .build();
+      this.beaconTransmitter.startAdvertising(beacon, new AdvertiseCallback() {
+        @Override
+        public void onStartFailure(int errorCode) {
+          super.onStartFailure(errorCode);
+          reject.invoke(errorCode);
+        }
+        @Override
+        public void onStartSuccess(AdvertiseSettings settingsInEffect) {
+          super.onStartSuccess(settingsInEffect);
+          resolve.invoke();
+        }
+      });
+    } catch (Exception e) {
+      reject.invoke(e.getMessage());
+    }
+  }
+
+  @ReactMethod
+  public void stopTransmittingBeacon(Callback resolve, Callback reject) {
+    try {
+      this.beaconTransmitter.stopAdvertising();
+      resolve.invoke();
+    } catch (Exception e) {
+      reject.invoke(e.getMessage());
+    }
   }
 
   @ReactMethod
@@ -285,12 +336,22 @@ public class BeaconsAndroidModule extends ReactContextBaseJavaModule implements 
     }
   }
 
+
   @ReactMethod
-  public void setDebug(boolean debug){
-      this.isDebug = debug;
-      BeaconManager.setDebug(debug);
+  public void getRNLogs(Callback callback) {
+      callback.invoke(this.logger.getLogs());
   }
 
+    @ReactMethod
+  public void setDebug(boolean debug) {
+      if (debug) {
+          LogManager.setLogger(this.logger);
+          LogManager.setVerboseLoggingEnabled(true);
+      } else {
+          LogManager.setLogger(Loggers.empty());
+          LogManager.setVerboseLoggingEnabled(false);
+      }
+  }
 
   @ReactMethod
   public void setEnableScheduledScanJobs(boolean enableScheduledScanJobs){
@@ -541,22 +602,11 @@ public class BeaconsAndroidModule extends ReactContextBaseJavaModule implements 
   @Override
   public void didEnterRegion(Region region) {
       sendEvent(mReactContext, "regionDidEnter", createMonitoringResponse(region));
-
-    if(isDebug){
-      NotificationManager notificationManager =
-        (NotificationManager) this.mReactContext.getSystemService(Context.NOTIFICATION_SERVICE);
-      notificationManager.notify(notifData.getNotificationId(), generateNotification("\ndidEnterRegion\n" + region.toString()));
-    }
   }
 
   @Override
   public void didExitRegion(Region region) {
       sendEvent(mReactContext, "regionDidExit", createMonitoringResponse(region));
-    if(isDebug){
-      NotificationManager notificationManager =
-        (NotificationManager) this.mReactContext.getSystemService(Context.NOTIFICATION_SERVICE);
-      notificationManager.notify(notifData.getNotificationId(), generateNotification("\ndidExitRegion\n" + region.toString()));
-    }
   }
 
   /***********************************************************************************************
@@ -578,11 +628,6 @@ public class BeaconsAndroidModule extends ReactContextBaseJavaModule implements 
       WritableMap map = createMonitoringResponse(region);
       map.putString("state", state);
       sendEvent(mReactContext, "didDetermineState", map);
-      if(isDebug){
-        NotificationManager notificationManager =
-          (NotificationManager) this.mReactContext.getSystemService(Context.NOTIFICATION_SERVICE);
-        notificationManager.notify(notifData.getNotificationId(), generateNotification("\ndidDetermineState\n" + state + "\n" + region.toString()));
-      }
   }
 
   /***********************************************************************************************
@@ -594,18 +639,5 @@ public class BeaconsAndroidModule extends ReactContextBaseJavaModule implements 
     sendEvent(mReactContext, "beaconsDidRange", createRangingResponse(beacons, region));
     StringBuilder stringBuilder = new StringBuilder();
     int count = 0;
-    if(isDebug){
-      NotificationManager notificationManager =
-        (NotificationManager) this.mReactContext.getSystemService(Context.NOTIFICATION_SERVICE);
-      for(Beacon beacon : beacons){
-        if (beacon.getIdentifiers().size() > 2) {
-          stringBuilder.append("\nmajor:").append(beacon.getId2().toInt());
-          stringBuilder.append(",minor:").append(beacon.getId3().toInt());
-          count++;
-        }
-      }
-      notificationManager.notify(notifData.getNotificationId(), generateNotification("\nFound " + ((count > 0) ? count : beacons.size()) + " beacon/s" + stringBuilder.toString()));
-    }
-
   }
 }
