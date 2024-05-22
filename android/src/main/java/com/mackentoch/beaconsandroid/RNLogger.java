@@ -26,9 +26,9 @@ class RNLogger implements Logger {
     }
 
     private void add(String str) {
-        DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.JAPAN);
+        DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.JAPAN);
         dateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
-        logs.add(dateFormat.format(new Date()) + " " + str);
+        logs.add(dateFormat.format(new Date()) + " [NATIVE] " + str);
     }
 
     protected String formatString(String message, Object... args) {
