@@ -65,7 +65,7 @@ public class BeaconsAndroidModule extends ReactContextBaseJavaModule implements 
   private Context mApplicationContext;
   private ReactApplicationContext mReactContext;
   private NotificationData notifData = null;
-  private BeaconTransmitter beaconTransmitter;
+  private BeaconTransmitter beaconTransmitter = null;
 
   private RNLogger logger;
 
@@ -80,16 +80,18 @@ public class BeaconsAndroidModule extends ReactContextBaseJavaModule implements 
     public void initialize() {
         this.logger = new RNLogger();
         this.mApplicationContext = this.mReactContext.getApplicationContext();
+        this.logger.i("BeaconsAndroidModule", "Initializing BeaconAndroidModule");
 
         // @TODO
         // BluetoothMedic.getInstance().legacyEnablePowerCycleOnFailures(this) // Android 4-12 only
         // BluetoothMedic.getInstance().enablePeriodicTests(this, BluetoothMedic.SCAN_TEST + BluetoothMedic.TRANSMIT_TEST)
-
         this.mBeaconManager = BeaconManager.getInstanceForApplication(mApplicationContext);
 
         // need to bind at instantiation so that service loads (to test more)
         // mBeaconManager.getBeaconParsers().add(new BeaconParser().setBeaconLayout("m:0-3=4c000215,i:4-19,i:20-21,i:22-23,p:24-24"));
         mBeaconManager.getBeaconParsers().clear();
+        BeaconParser parser = new BeaconParser().setBeaconLayout("m:2-3=0215,i:4-19,i:20-21,i:22-23,p:24-24");
+        this.mBeaconManager.getBeaconParsers().add(parser);
 
         // If we were monitoring *different* regions on the last run of this app, they will be
         // remembered.  In this case we need to disable them here
@@ -105,15 +107,18 @@ public class BeaconsAndroidModule extends ReactContextBaseJavaModule implements 
         this.mBeaconManager.addMonitorNotifier(this);
         this.mBeaconManager.addRangeNotifier(this);
 
-        BeaconParser parser = new BeaconParser().setBeaconLayout("m:2-3=0215,i:4-19,i:20-21,i:22-23,p:24-24");
-        this.mBeaconManager.getBeaconParsers().add(parser);
-
-        this.mBeaconManager.setEnableScheduledScanJobs(false);
+        if (this.mBeaconManager.isAnyConsumerBound()) {
+            this.logger.e("BeaconsAndroidModule", "Consumer is already bound!");
+        } else {
+            this.mBeaconManager.setEnableScheduledScanJobs(false);
+        }
         this.mBeaconManager.setBackgroundBetweenScanPeriod(15 * 1000);
         this.mBeaconManager.setBackgroundScanPeriod(1100);
         // this.mBeaconManager.setIntentScanningStrategyEnabled(true);
 
-        this.beaconTransmitter = new BeaconTransmitter(mApplicationContext, new BeaconParser().setBeaconLayout("m:2-3=0215,i:4-19,i:20-21,i:22-23,p:24-24"));
+        if (this.beaconTransmitter == null) {
+            this.beaconTransmitter = new BeaconTransmitter(mApplicationContext, new BeaconParser().setBeaconLayout("m:2-3=0215,i:4-19,i:20-21,i:22-23,p:24-24"));
+        }
     }
 
     @Override
